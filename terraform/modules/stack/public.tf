@@ -2,6 +2,7 @@
 locals {
   acm_cert_arn                    = var.acm_cert_arn
   custom_domain                   = local.cloudfront_enabled && var.cloudfront_domain != "" && local.acm_cert_arn != null
+  cloudfront_cache_max_age        = var.cloudfront_cache_max_age
   cloudfront_enabled              = var.cloudfront_enabled
   cloudfront_geo_restriction_list = var.cloudfront_geo_restriction_list
   cloudfront_geo_restriction_type = var.cloudfront_geo_restriction_type
@@ -54,6 +55,20 @@ resource "aws_cloudfront_origin_access_control" "public" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_response_headers_policy" "public" {
+  for_each = local.deploy_cloudfront
+
+  name = local.stack
+
+  custom_headers_config {
+    items {
+      header   = "Cache-Control"
+      value    = "public, max-age=${local.cloudfront_cache_max_age}, immutable"
+      override = false
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "public" {
   for_each = local.deploy_cloudfront
 
@@ -74,9 +89,10 @@ resource "aws_cloudfront_distribution" "public" {
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
     target_origin_id = local.stack
 
-    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
-    compress               = true
-    viewer_protocol_policy = "redirect-to-https"
+    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
+    compress                   = true
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.public[each.key].id
+    viewer_protocol_policy     = "redirect-to-https"
   }
 
   custom_error_response {

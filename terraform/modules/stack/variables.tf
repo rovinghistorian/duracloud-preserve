@@ -21,6 +21,12 @@ variable "cloudfront_enabled" {
   default     = false
 }
 
+variable "cloudfront_cache_max_age" {
+  description = "Browser cache lifetime (seconds) applied to public files via CloudFront"
+  type        = number
+  default     = 604800
+}
+
 variable "cloudfront_domain" {
   description = "The domain that will be used with CloudFront for public file access"
   type        = string

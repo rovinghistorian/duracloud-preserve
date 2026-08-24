@@ -243,8 +243,9 @@ resource "aws_s3_bucket_logging" "public" {
 resource "aws_s3_object" "not_found" {
   bucket = aws_s3_bucket.public.id
 
-  key          = "404.html"
-  content_type = "text/html"
+  key           = "404.html"
+  cache_control = "no-store"
+  content_type  = "text/html"
 
   content = <<-HTML
     <!doctype html>
