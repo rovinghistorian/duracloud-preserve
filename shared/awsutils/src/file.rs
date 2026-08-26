@@ -3,7 +3,7 @@ use crate::errors::S3ResultExt;
 use aws_sdk_s3::{
     Client,
     error::{ProvideErrorMetadata, SdkError},
-    operation::get_object::{GetObjectError, GetObjectOutput},
+    operation::get_object::GetObjectOutput,
     operation::head_object::{HeadObjectError, HeadObjectOutput},
     primitives::ByteStream,
 };
@@ -38,23 +38,19 @@ pub async fn delete(client: &Client, file: &File) -> Result<(), RequestError> {
 }
 
 /// Make get object request for file
-pub async fn download(
-    client: &Client,
-    file: &File,
-) -> Result<GetObjectOutput, SdkError<GetObjectError>> {
+pub async fn download(client: &Client, file: &File) -> Result<GetObjectOutput, RequestError> {
     client
         .get_object()
         .bucket(&file.bucket)
         .key(&file.object)
         .send()
         .await
+        .s3_err("failed to download file")
 }
 
 /// Download file content as bytes
 pub async fn download_bytes(client: &Client, file: &File) -> Result<bytes::Bytes, RequestError> {
-    let response = download(client, file)
-        .await
-        .s3_err("failed to download file")?;
+    let response = download(client, file).await?;
 
     response
         .body
@@ -83,9 +79,7 @@ pub async fn download_files_to_temp(
         let filename = file.key().rsplit('/').next().unwrap_or(file.key());
         let local_path = temp_dir.path().join(format!("{index:05}-{filename}"));
 
-        let mut response = download(client, file)
-            .await
-            .s3_err("failed to download file")?;
+        let mut response = download(client, file).await?;
         let mut output = tokio::fs::File::create(&local_path).await?;
         while let Some(chunk) = response.body.next().await {
             let chunk = chunk.s3_err("failed to read body")?;
@@ -133,7 +127,7 @@ fn is_missing_object(e: &SdkError<HeadObjectError>) -> bool {
 pub async fn head(
     client: &Client,
     file: &File,
-) -> Result<HeadObjectOutput, SdkError<HeadObjectError>> {
+) -> Result<HeadObjectOutput, Box<SdkError<HeadObjectError>>> {
     use aws_sdk_s3::types::ChecksumMode;
 
     client
@@ -143,6 +137,7 @@ pub async fn head(
         .checksum_mode(ChecksumMode::Enabled)
         .send()
         .await
+        .map_err(Box::new)
 }
 
 /// Upload content to S3

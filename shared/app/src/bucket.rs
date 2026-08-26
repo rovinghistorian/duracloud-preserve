@@ -380,9 +380,7 @@ pub fn parse_request_names(content: &str) -> Vec<String> {
 
 /// Retrieve bucket request file and verify it is valid.
 pub async fn read_request_names(client: &Client, file: &File) -> Result<Vec<String>, RequestError> {
-    let Ok(r) = file::download(client, file).await else {
-        return Err(RequestError::S3Error("failed to download file".to_string()));
-    };
+    let r = file::download(client, file).await?;
 
     if let Some(ct) = r.content_type()
         && !ct.starts_with(TEXT_PLAIN)

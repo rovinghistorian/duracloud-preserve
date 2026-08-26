@@ -1,6 +1,5 @@
-use aws_sdk_s3::error::SdkError;
-use aws_sdk_s3::operation::put_object_tagging::PutObjectTaggingError;
 use aws_sdk_s3::types::{Tag, Tagging};
+use awsutils::errors::S3ResultExt;
 use chrono::{DateTime, Utc};
 
 use crate::errors::ArchiveItError;
@@ -36,13 +35,14 @@ pub async fn tag_expired(
     bucket: &str,
     key: &str,
     tagging: Tagging,
-) -> Result<(), SdkError<PutObjectTaggingError>> {
+) -> Result<(), ArchiveItError> {
     s3.put_object_tagging()
         .bucket(bucket)
         .key(key)
         .tagging(tagging)
         .send()
-        .await?;
+        .await
+        .s3_err(format!("failed to tag expired object s3://{bucket}/{key}"))?;
     Ok(())
 }
 

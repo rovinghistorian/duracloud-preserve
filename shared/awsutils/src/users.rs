@@ -1,3 +1,6 @@
+// `aws_sdk_iam::Error` is 128 bytes, right at `result_large_err`'s threshold.
+#![allow(clippy::result_large_err)]
+
 use aws_sdk_iam::Client;
 use aws_sdk_iam::types::{Tag, User};
 use futures::{StreamExt, TryStreamExt, stream};
