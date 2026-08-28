@@ -17,6 +17,7 @@
 - [Query audit and inventory data](user/query_audit_and_inventory_data.md)
 - [Users and Groups](user/users-groups.md)
 - [External Documentation](user/external-documentation.md)
+- [User Resources](user/user-resources.md)
 
 # Deployment guide
 
