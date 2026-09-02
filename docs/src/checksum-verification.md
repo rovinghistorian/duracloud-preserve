@@ -78,7 +78,7 @@ AWS S3 is designed for 99.999999999% (eleven nines) durability. Given S3's uploa
 
 ### 4. Ongoing Verification
 
-S3 Batch Operations are used to generate checksum reports across all objects in both the source and replication buckets. These reports are compared on a regular schedule.
+S3 Batch Operations are used to generate checksum reports across all objects in both the source and replication buckets. These reports are compared on a regular schedule. Reports are generated using full-object SHA-256, computed by reading the stored object.
 
 | Result | Meaning |
 |---|---|
@@ -97,7 +97,9 @@ If verification finds that checksums do not match, the following steps identify 
 aws s3api head-object --bucket ${bucket} --key ${key} --checksum-mode ENABLED
 ```
 
-**Step 3 — Download and verify locally.** For a more thorough inspection, download the objects and compute checksums locally using an algorithm included in the object metadata (S3 uses `CRC-64/NVME` by default but other checksums may be present in addition to or instead of `crc64nvme` depending on how the object was uploaded):
+**Step 3 — Download and verify locally.** For a more thorough inspection, download the objects and compute checksums locally using an algorithm included in the object metadata (S3 uses `CRC-64/NVME` by default but other checksums may be present in addition to or instead of `crc64nvme` depending on how the object was uploaded).
+
+Compare each downloaded copy against its own stored metadata checksum: that value was validated by S3 when the file was uploaded, so the copy that no longer matches it is the corrupt one. The differing SHA-256 pair in the verification report cannot identify the corrupt copy on its own.
 
 ```bash
 # Retrieve the stored checksum
@@ -106,7 +108,15 @@ aws s3api head-object --bucket ${bucket} --key ${key} --checksum-mode ENABLED
 # Download the file
 aws s3 cp s3://${bucket}/${key} .
 
-# Compute the checksum locally using the DuraCloud Preserve CLI
+# Compute the checksum locally, matching the algorithm reported above.
+# Note that S3 stores checksums base64-encoded, while most local tools
+# print hexadecimal, so the two will not look alike unless converted.
+
+# For ChecksumSHA256
+openssl dgst -sha256 -binary ${key} | base64
+
+# For ChecksumCRC64NVME, which has no widely available local tool,
+# use the DuraCloud Preserve CLI
 dcp checksum --file ${key}
 ```
 

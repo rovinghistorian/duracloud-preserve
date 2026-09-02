@@ -25,8 +25,7 @@ use crate::file::{self, File};
 pub use crate::errors::BatchError;
 use crate::errors::RequestError;
 
-const CHECKSUM_ALGORITHM: ComputeObjectChecksumAlgorithm =
-    ComputeObjectChecksumAlgorithm::Crc64Nvme;
+const CHECKSUM_ALGORITHM: ComputeObjectChecksumAlgorithm = ComputeObjectChecksumAlgorithm::Sha256;
 
 /// S3 Batch failure code when generated manifest produces no entries.
 pub const EMPTY_MANIFEST_CODE: &str = "InvalidManifestContent";
@@ -390,7 +389,7 @@ mod tests {
             .expect("request body should be valid utf-8");
 
         assert!(body.contains("<S3ComputeObjectChecksum>"));
-        assert!(body.contains("<ChecksumAlgorithm>CRC64NVME</ChecksumAlgorithm>"));
+        assert!(body.contains("<ChecksumAlgorithm>SHA256</ChecksumAlgorithm>"));
         assert!(body.contains("<ChecksumType>FULL_OBJECT</ChecksumType>"));
         assert!(body.contains("<ManifestPrefix>batch/manifests/checksum</ManifestPrefix>"));
         assert!(body.contains("<Prefix>batch/reports/checksum/source-bucket</Prefix>"));
