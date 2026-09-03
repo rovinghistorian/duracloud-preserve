@@ -7,8 +7,11 @@ zig = "0.16"
 
 [settings]
 idiomatic_version_file_enable_tools = ["terraform"]
+
 # cmd /c mangles quoting of templated task args (e.g. file paths with spaces);
-windows_default_inline_shell_args = "pwsh -NoProfile -Command"
+# use PowerShell for project tasks on Windows while retaining mise's Unix default.
+[task_config]
+shell = "{% if os() == 'windows' %}pwsh -Command{% else %}sh -c -o errexit{% endif %}"
 
 [env]
 # duckdb links the prebuilt shared library; libduckdb-sys copies it into
