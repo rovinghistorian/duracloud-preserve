@@ -2,9 +2,9 @@
 
 Deployments consume two kinds of build artifacts:
 
-- **Lambda zips** — one `bootstrap.zip` per function, in the regional
+- **Lambda zips:** one `bootstrap.zip` per function, in the regional
   `dcp-artifacts-{region}`.
-- **The dcp Docker image** — `duracloud/dcp`, used by the ECS scheduled
+- **The dcp Docker image:** `duracloud/dcp`, used by the ECS scheduled
   tasks (e.g. Archive-It).
 
 Both are published with a derived version so test builds can be deployed
@@ -38,7 +38,7 @@ deleted, which is what makes rollback possible.
 
 ## Testing a build
 
-Publish the artifacts (versioned channel only — the stable channel and any
+Publish the artifacts (versioned channel only, the stable channel and any
 production stack are untouched):
 
 ```bash
@@ -82,3 +82,9 @@ mise run deploy --stack <stack> --profile <profile> --version <older-version>
 
 To roll the stable channel itself back, check out the corresponding commit
 and run `mise run release` from it.
+
+## Building the dcp cli
+
+```bash
+mise run install
+```
