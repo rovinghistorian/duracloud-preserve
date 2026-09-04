@@ -57,7 +57,6 @@ locals {
   # Bucket replication
   replication_rule_id       = "ReplicateAll"
   replication_rule_priority = 1
-  replication_time_minutes  = 15
 
   # Content types
   application_json = "application/json"

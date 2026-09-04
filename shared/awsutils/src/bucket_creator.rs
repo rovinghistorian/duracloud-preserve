@@ -4,10 +4,9 @@ use aws_sdk_s3::types::{
     DeleteMarkerReplicationStatus, Destination, EventBridgeConfiguration, ExpirationStatus,
     InventoryConfiguration, InventoryDestination, InventoryFormat, InventoryFrequency,
     InventoryIncludedObjectVersions, InventoryOptionalField, InventoryS3BucketDestination,
-    InventorySchedule, LifecycleExpiration, LifecycleRule, LifecycleRuleFilter, Metrics,
-    MetricsStatus, NoncurrentVersionExpiration, NotificationConfiguration,
-    ReplicationConfiguration, ReplicationRule, ReplicationRuleFilter, ReplicationRuleStatus,
-    ReplicationTime, ReplicationTimeStatus, ReplicationTimeValue, Tag, Transition,
+    InventorySchedule, LifecycleExpiration, LifecycleRule, LifecycleRuleFilter,
+    NoncurrentVersionExpiration, NotificationConfiguration, ReplicationConfiguration,
+    ReplicationRule, ReplicationRuleFilter, ReplicationRuleStatus, Tag, Transition,
     TransitionStorageClass, VersioningConfiguration,
 };
 
@@ -424,24 +423,6 @@ impl<'a> BucketCreator<'a> {
                             .destination(
                                 Destination::builder()
                                     .bucket(format!("arn:aws:s3:::{repl_bucket_name}"))
-                                    .replication_time(
-                                        ReplicationTime::builder()
-                                            .status(ReplicationTimeStatus::Enabled)
-                                            .time(
-                                                ReplicationTimeValue::builder().minutes(15).build(),
-                                            )
-                                            .build()
-                                            .s3_err("failed to build replication time")?,
-                                    )
-                                    .metrics(
-                                        Metrics::builder()
-                                            .status(MetricsStatus::Enabled)
-                                            .event_threshold(
-                                                ReplicationTimeValue::builder().minutes(15).build(),
-                                            )
-                                            .build()
-                                            .s3_err("failed to build replication metrics")?,
-                                    )
                                     .build()
                                     .s3_err("failed to build replication destination")?,
                             )

@@ -53,7 +53,6 @@ pub const STORAGE_TRANSITION_DAYS: u8 = 3;
 // Bucket replication
 pub const REPLICATION_RULE_ID: &str = "ReplicateAll";
 pub const REPLICATION_RULE_PRIORITY: i32 = 1;
-pub const REPLICATION_TIME_MINUTES: i32 = 15;
 
 // Content types
 pub const APPLICATION_JSON: &str = "application/json";

@@ -138,14 +138,6 @@ mod tests {
     <Filter><Prefix></Prefix></Filter>
     <Destination>
       <Bucket>arn:aws:s3:::{dest_bucket}</Bucket>
-      <ReplicationTime>
-        <Status>Enabled</Status>
-        <Time><Minutes>15</Minutes></Time>
-      </ReplicationTime>
-      <Metrics>
-        <Status>Enabled</Status>
-        <EventThreshold><Minutes>15</Minutes></EventThreshold>
-      </Metrics>
     </Destination>
     <DeleteMarkerReplication><Status>Enabled</Status></DeleteMarkerReplication>
   </Rule>

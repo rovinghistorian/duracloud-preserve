@@ -3,8 +3,8 @@ use std::fmt::Display;
 use aws_sdk_s3::error::ProvideErrorMetadata;
 use aws_sdk_s3::types::{
     BucketVersioningStatus, DeleteMarkerReplicationStatus, InventoryFrequency,
-    InventoryIncludedObjectVersions, InventoryOptionalField, MetricsStatus, ReplicationRuleStatus,
-    ReplicationTimeStatus, TransitionStorageClass,
+    InventoryIncludedObjectVersions, InventoryOptionalField, ReplicationRuleStatus,
+    TransitionStorageClass,
 };
 
 use base::Stack;
@@ -460,15 +460,8 @@ impl<'a> BucketReconciliator<'a> {
             && rule.filter().and_then(|f| f.prefix()) == Some("")
             && rule.destination().is_some_and(|d| {
                 d.bucket() == expected_dest_arn.as_str()
-                    && d.replication_time().is_some_and(|rt| {
-                        rt.status() == &ReplicationTimeStatus::Enabled
-                            && rt.time().and_then(|t| t.minutes()) == Some(REPLICATION_TIME_MINUTES)
-                    })
-                    && d.metrics().is_some_and(|m| {
-                        m.status() == &MetricsStatus::Enabled
-                            && m.event_threshold().and_then(|t| t.minutes())
-                                == Some(REPLICATION_TIME_MINUTES)
-                    })
+                    && d.replication_time().is_none()
+                    && d.metrics().is_none()
             })
             && rule.delete_marker_replication().and_then(|d| d.status())
                 == Some(&DeleteMarkerReplicationStatus::Enabled);

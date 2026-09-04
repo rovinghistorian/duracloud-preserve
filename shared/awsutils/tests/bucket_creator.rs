@@ -414,35 +414,14 @@ async fn verify_replication_configured(ctx: &IntegrationTestContext, src: &str, 
         src
     );
 
-    let replication_time = destination
-        .replication_time()
-        .unwrap_or_else(|| panic!("missing replication time on {}", src));
-    assert_eq!(
-        replication_time.status(),
-        &aws_sdk_s3::types::ReplicationTimeStatus::Enabled,
-        "replication time not enabled on {}",
+    assert!(
+        destination.replication_time().is_none(),
+        "unexpected replication time control on {}",
         src
     );
-    assert_eq!(
-        replication_time.time().and_then(|t| t.minutes()),
-        Some(15),
-        "unexpected replication time minutes on {}",
-        src
-    );
-
-    let metrics = destination
-        .metrics()
-        .unwrap_or_else(|| panic!("missing replication metrics on {}", src));
-    assert_eq!(
-        metrics.status(),
-        &aws_sdk_s3::types::MetricsStatus::Enabled,
-        "replication metrics not enabled on {}",
-        src
-    );
-    assert_eq!(
-        metrics.event_threshold().and_then(|t| t.minutes()),
-        Some(15),
-        "unexpected replication metrics threshold minutes on {}",
+    assert!(
+        destination.metrics().is_none(),
+        "unexpected replication metrics on {}",
         src
     );
 

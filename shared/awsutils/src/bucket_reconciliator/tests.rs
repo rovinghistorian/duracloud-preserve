@@ -386,6 +386,30 @@ fn lifecycle_xml_full(transition_class: &str) -> String {
 }
 
 fn replication_xml(dest_bucket: &str, role_arn: &str) -> String {
+    replication_xml_with_destination_options(dest_bucket, role_arn, "")
+}
+
+fn replication_xml_with_rtc(dest_bucket: &str, role_arn: &str) -> String {
+    replication_xml_with_destination_options(
+        dest_bucket,
+        role_arn,
+        r#"      <ReplicationTime>
+        <Status>Enabled</Status>
+        <Time><Minutes>15</Minutes></Time>
+      </ReplicationTime>
+      <Metrics>
+        <Status>Enabled</Status>
+        <EventThreshold><Minutes>15</Minutes></EventThreshold>
+      </Metrics>
+"#,
+    )
+}
+
+fn replication_xml_with_destination_options(
+    dest_bucket: &str,
+    role_arn: &str,
+    destination_options: &str,
+) -> String {
     format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
 <ReplicationConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
@@ -397,14 +421,7 @@ fn replication_xml(dest_bucket: &str, role_arn: &str) -> String {
     <Filter><Prefix></Prefix></Filter>
     <Destination>
       <Bucket>arn:aws:s3:::{dest_bucket}</Bucket>
-      <ReplicationTime>
-        <Status>Enabled</Status>
-        <Time><Minutes>{REPLICATION_TIME_MINUTES}</Minutes></Time>
-      </ReplicationTime>
-      <Metrics>
-        <Status>Enabled</Status>
-        <EventThreshold><Minutes>{REPLICATION_TIME_MINUTES}</Minutes></EventThreshold>
-      </Metrics>
+{destination_options}
     </Destination>
     <DeleteMarkerReplication>
       <Status>Enabled</Status>
@@ -1020,6 +1037,32 @@ async fn test_reconcile_standard_replication_drift_wrong_role() {
         .find(|s| s.name == "replication")
         .unwrap();
     assert_matches!(repl_step.status, StepStatus::Drift);
+}
+
+#[tokio::test]
+async fn test_reconcile_standard_replication_drift_rtc_enabled() {
+    let stack = test_stack();
+    let bucket_name = "test-stack-example";
+    let repl_name = "test-stack-example-repl";
+    let client = TestClientBuilder::new()
+        .success(
+            replication_xml_with_rtc(repl_name, TEST_REPL_ROLE_ARN),
+            None,
+        )
+        .build();
+    let params = BucketCreatorParams {
+        account_id: TEST_ACCOUNT_ID,
+        client: &client,
+        replication_role_arn: TEST_REPL_ROLE_ARN,
+        stack: &stack,
+    };
+    let bucket = Bucket::new(bucket_name, Type::Standard).unwrap();
+    let repl_bucket = Bucket::new(repl_name, Type::Replication).unwrap();
+    let reconciliator = BucketReconciliator::new(&params, &bucket, Some(&repl_bucket));
+
+    let result = reconciliator.check_replication_config().await;
+
+    assert_matches!(result.status, StepStatus::Drift);
 }
 
 #[tokio::test]

@@ -206,20 +206,6 @@ resource "aws_s3_bucket_replication_configuration" "public" {
 
     destination {
       bucket = aws_s3_bucket.public_repl.arn
-
-      replication_time {
-        status = "Enabled"
-        time {
-          minutes = local.replication_time_minutes
-        }
-      }
-
-      metrics {
-        status = "Enabled"
-        event_threshold {
-          minutes = local.replication_time_minutes
-        }
-      }
     }
 
     delete_marker_replication {
