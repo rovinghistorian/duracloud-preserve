@@ -31,6 +31,10 @@ Navigate to the `public` folder and upload your content there (see [Uploading Fi
 aws s3 cp myfile.jpg s3://duracloud-$ID-public/myfolder/myfile.jpg
 ```
 
+## Suggestions for public content
+
+Upload smaller file sizes and formats (for example, .jpgs instead of .tiffs) to your `-public` bucket as access copies. Store preservation copies elsewhere in DuraCloud Preserve. Smaller file sizes and formats will download and be viewable more quickly for your users and work with a variety of browser and internet speed limits.
+
 ## Creating public buckets (not recommended)
 
 You can also make content publicly available by designating a bucket as `-public` - See [How to Create Buckets](creating-buckets.md).
