@@ -11,6 +11,7 @@ terraform.tfvars
 *.txt
 !files/*.txt
 tmp_*.json
+docs/plans
 payloads
 target
 TRIGGER

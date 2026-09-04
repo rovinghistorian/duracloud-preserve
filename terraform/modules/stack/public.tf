@@ -54,6 +54,16 @@ resource "aws_cloudfront_origin_access_control" "public" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_function" "public_file_response" {
+  for_each = local.deploy_cloudfront
+
+  name    = substr("${local.stack}-public-file-response", 0, 64)
+  comment = "Make user-uploaded files safe for browser delivery"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code    = file("${path.module}/assets/cloudfront/public-file-response.js")
+}
+
 resource "aws_cloudfront_distribution" "public" {
   for_each = local.deploy_cloudfront
 
@@ -77,13 +87,18 @@ resource "aws_cloudfront_distribution" "public" {
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
+
+    function_association {
+      event_type   = "viewer-response"
+      function_arn = aws_cloudfront_function.public_file_response[each.key].arn
+    }
   }
 
   custom_error_response {
     error_caching_min_ttl = 60
     error_code            = 403
     response_code         = 404
-    response_page_path    = "/404.html"
+    response_page_path    = "/404.txt"
   }
 
   restrictions {

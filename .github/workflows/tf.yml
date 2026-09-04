@@ -6,11 +6,15 @@ on:
     paths:
       - ".github/workflows/tf.yml"
       - "**.tf"
+      - "terraform/modules/stack/assets/cloudfront/**"
+      - "terraform/modules/stack/tests/**"
   pull_request:
     branches: [main]
     paths:
       - ".github/workflows/tf.yml"
       - "**.tf"
+      - "terraform/modules/stack/assets/cloudfront/**"
+      - "terraform/modules/stack/tests/**"
 
 jobs:
   check:
@@ -26,6 +30,7 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - run: node terraform/modules/stack/tests/public-file-response.test.js
       - run: terraform fmt -check -recursive -diff
       - run: terraform init -backend=false
       - run: terraform validate

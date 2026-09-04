@@ -81,6 +81,17 @@ locals {
     local.repl_bucket_arn_pattern,
     local.repl_object_arn_pattern,
   ]
+
+  public_reserved_object_resources = [
+    "${aws_s3_bucket.public.arn}/404.txt",
+    "${aws_s3_bucket.public.arn}/watch/*",
+  ]
+
+  public_reserved_object_deny_actions = [
+    "s3:AbortMultipartUpload",
+    "s3:DeleteObject",
+    "s3:PutObject",
+  ]
 }
 
 data "aws_iam_policy_document" "user_groups" {
@@ -100,6 +111,12 @@ data "aws_iam_policy_document" "user_groups" {
       actions   = [statement.value]
       resources = local.stack_bucket_resources
     }
+  }
+
+  statement {
+    effect    = "Deny"
+    actions   = local.public_reserved_object_deny_actions
+    resources = local.public_reserved_object_resources
   }
 
   dynamic "statement" {
