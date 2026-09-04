@@ -11,6 +11,10 @@ pub struct Args {
     /// Stack name (e.g., digipres-dev1)
     #[arg(short, long)]
     stack: String,
+
+    /// Return an error when configuration drift is detected
+    #[arg(long)]
+    fail_on_drift: bool,
 }
 
 pub async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
@@ -19,11 +23,11 @@ pub async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Evaluating buckets for stack: {}", config.stack().as_str());
 
-    let args = PerformArgs {
+    let perform_args = PerformArgs {
         fail_on_drift: false,
     };
 
-    let report = bucket_reconciliation::perform(&config, &args).await?;
+    let report = bucket_reconciliation::perform(&config, &perform_args).await?;
 
     if report.processed == 0 {
         println!("No bucket-request buckets found for reconciliation");
@@ -67,6 +71,14 @@ pub async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
 
     if report.has_errors() {
         return Err(format!("reconciliation reported {} error(s)", report.errors).into());
+    }
+
+    if args.fail_on_drift && report.has_drift() {
+        return Err(format!(
+            "reconciliation reported {} bucket(s) with drift",
+            report.drift
+        )
+        .into());
     }
 
     Ok(())
